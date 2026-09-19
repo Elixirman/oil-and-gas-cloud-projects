@@ -4,7 +4,7 @@ A hybrid cloud landing zone connecting an AWS "HQ" network to an Azure "Field Of
 network via an encrypted Site-to-Site VPN — simulating how an Oil & Gas company might
 link headquarters systems to a remote field/rig site.
 
-   🔗 **[View Interactive Simulation](https://elixirman.github.io/oil-and-gas-cloud-projects/project-1-multicloud-foundation/)**
+   🔗 **[View Interactive Simulation](https://elixirman.github.io/oil-and-gas-cloud-projects/)**
 ---
 
 ## Architecture Overview
