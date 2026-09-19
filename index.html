@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 1 — Multicloud Foundation | AWS + Azure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #101820;
+    --panel: #161f29;
+    --panel-2: #1c2733;
+    --line: #2a3744;
+    --steel: #4A7A96;
+    --steel-bright: #6FA3C2;
+    --amber: #D98A34;
+    --teal: #5FA8A0;
+    --text: #EDEAE3;
+    --text-dim: #97A3AD;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-attachment: fixed;
+    min-height:100vh;
+  }
+  header{
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(16,24,32,0.95), rgba(16,24,32,0.85));
+  }
+  header .eyebrow{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--steel-bright);
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+  header h1{
+    font-size: 26px;
+    margin: 0 0 6px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header p{
+    margin:0;
+    color: var(--text-dim);
+    font-size: 14px;
+    max-width: 640px;
+    line-height:1.5;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns: 280px 1fr;
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: calc(100vh - 110px);
+  }
+  nav{
+    border-right: 1px solid var(--line);
+    padding: 20px 0;
+    overflow-y:auto;
+  }
+  .step-item{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding: 11px 20px;
+    cursor:pointer;
+    border-left: 2px solid transparent;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .step-item:hover{ background: rgba(255,255,255,0.02); }
+  .step-item.active{
+    border-left-color: var(--steel-bright);
+    background: rgba(111,163,194,0.08);
+  }
+  .step-num{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    width: 22px;
+    flex-shrink:0;
+    padding-top:1px;
+  }
+  .step-item.active .step-num{ color: var(--steel-bright); font-weight:600; }
+  .step-item.done .step-num::after{ content: " ✓"; color: var(--teal); }
+  .step-label{
+    font-size: 13px;
+    line-height:1.35;
+    color: var(--text-dim);
+  }
+  .step-item.active .step-label{ color: var(--text); font-weight:500; }
+  .step-item.phase-marker{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--steel);
+    padding: 16px 20px 6px;
+    cursor:default;
+    opacity:0.8;
+  }
+  .step-item.phase-marker:hover{ background:none; }
+
+  main{ padding: 28px 36px 40px; overflow-x:hidden;}
+  .stage{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+  }
+  .stage-title{
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text-dim);
+    letter-spacing:0.04em;
+    margin: 0 0 14px;
+  }
+  svg { width:100%; height:auto; display:block; }
+  .box-label{ font-family: var(--mono); font-size: 12px; fill: var(--text-dim); }
+  .box-title{ font-family: var(--sans); font-weight:700; font-size:14px; fill: var(--text); }
+  .node-rect{ fill: var(--panel-2); stroke: var(--line); stroke-width:1.5; transition: stroke 0.4s, fill 0.4s; }
+  .node-rect.active{ stroke: var(--steel-bright); fill: rgba(111,163,194,0.08); }
+  .node-rect.success{ stroke: var(--teal); fill: rgba(95,168,160,0.08); }
+  .tunnel-line{
+    stroke: var(--line);
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 6 6;
+    transition: stroke 0.4s;
+  }
+  .tunnel-line.active{
+    stroke: var(--steel-bright);
+    animation: dash 1.2s linear infinite;
+  }
+  .tunnel-line.success{
+    stroke: var(--teal);
+    animation: dash 1.2s linear infinite;
+  }
+  @keyframes dash{ to{ stroke-dashoffset: -24; } }
+  .packet{
+    fill: var(--amber);
+    opacity:0;
+  }
+  .packet.fire{
+    animation: travel 1.4s ease-in-out infinite;
+  }
+  @keyframes travel{
+    0%{ opacity:0; }
+    8%{ opacity:1; }
+    92%{ opacity:1; }
+    100%{ opacity:0; }
+  }
+  .content-title{ font-size:19px; font-weight:700; margin:0 0 10px; }
+  .content-body{ font-size:14.5px; line-height:1.65; color: var(--text-dim); margin:0 0 4px;}
+  .content-body strong{ color: var(--text); font-weight:600;}
+  code.inline{
+    font-family: var(--mono); background: var(--panel-2); border:1px solid var(--line);
+    padding: 1px 6px; border-radius:3px; font-size:13px; color: var(--steel-bright);
+  }
+  pre.code-block{
+    font-family: var(--mono);
+    font-size: 13px;
+    background: #0c1218;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--steel);
+    border-radius: 4px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height:1.6;
+    margin: 14px 0 0;
+    color: #cfe3ee;
+  }
+  pre.code-block.fix{ border-left-color: var(--amber); }
+  .tag{
+    display:inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom:10px;
+    letter-spacing:0.03em;
+  }
+  .tag.build{ background: rgba(111,163,194,0.12); color: var(--steel-bright); }
+  .tag.issue{ background: rgba(217,138,52,0.14); color: var(--amber); }
+  .tag.verify{ background: rgba(95,168,160,0.14); color: var(--teal); }
+  .footnote{
+    font-size: 12.5px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    padding-top:12px;
+    border-top: 1px dashed var(--line);
+  }
+  .nav-buttons{
+    display:flex;
+    justify-content:space-between;
+    max-width: 900px;
+  }
+  .nav-btn{
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 10px 18px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--text);
+    cursor:pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .nav-btn:hover:not(:disabled){ border-color: var(--steel-bright); }
+  .nav-btn:disabled{ opacity:0.35; cursor:default; }
+  .nav-btn.primary{ background: var(--steel); border-color: var(--steel); }
+  .nav-btn.primary:hover{ background: var(--steel-bright); }
+  .progress-track{
+    height:3px; background: var(--line); border-radius:2px; overflow:hidden; margin: 14px 0 24px; max-width:900px;
+  }
+  .progress-fill{ height:100%; background: var(--steel-bright); transition: width 0.3s; }
+
+  @media (max-width: 820px){
+    .layout{ grid-template-columns: 1fr; }
+    nav{ border-right:none; border-bottom:1px solid var(--line); max-height:220px; }
+    main{ padding: 20px 18px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">OIL &amp; GAS CLOUD ENGINEERING SERIES — PROJECT 01</div>
+  <h1>Multicloud Foundation: AWS ↔ Azure</h1>
+  <p>A hybrid landing zone connecting an AWS "HQ" network to an Azure "Field Office" network over an encrypted Site-to-Site VPN — the same pattern used to link headquarters systems to a remote rig or plant site.</p>
+</header>
+
+<div class="layout">
+  <nav id="stepNav"></nav>
+  <main>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="stage">
+      <div class="stage-title">NETWORK DIAGRAM</div>
+      <svg id="diagram" viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg">
+        <!-- AWS box -->
+        <rect id="awsBox" class="node-rect" x="40" y="50" width="280" height="220" rx="6"/>
+        <text x="60" y="78" class="box-title" fill="#EDEAE3">AWS — HQ</text>
+        <text x="60" y="98" class="box-label">hq-vpc · 10.0.0.0/16</text>
+        <rect id="awsSubnet" class="node-rect" x="60" y="112" width="240" height="60" rx="4"/>
+        <text x="75" y="134" class="box-label">hq-subnet-1 · 10.0.1.0/24</text>
+        <text x="75" y="154" class="box-label" id="awsServerLabel">hq-server (EC2)</text>
+        <rect id="awsGw" class="node-rect" x="60" y="190" width="240" height="50" rx="4"/>
+        <text x="75" y="220" class="box-label">hq-vgw (Virtual Private Gateway)</text>
+
+        <!-- Azure box -->
+        <rect id="azBox" class="node-rect" x="580" y="50" width="280" height="220" rx="6"/>
+        <text x="600" y="78" class="box-title" fill="#EDEAE3">Azure — Field Office</text>
+        <text x="600" y="98" class="box-label">field-vnet · 10.1.0.0/16</text>
+        <rect id="azSubnet" class="node-rect" x="600" y="112" width="240" height="60" rx="4"/>
+        <text x="615" y="134" class="box-label">field-subnet-1 · 10.1.1.0/24</text>
+        <text x="615" y="154" class="box-label" id="azServerLabel">field-server (VM)</text>
+        <rect id="azGw" class="node-rect" x="600" y="190" width="240" height="50" rx="4"/>
+        <text x="615" y="220" class="box-label">field-vpn-gw (VpnGw1)</text>
+
+        <!-- Tunnel -->
+        <path id="tunnel" class="tunnel-line" d="M 300 215 L 600 215"/>
+        <text x="450" y="205" text-anchor="middle" class="box-label" id="tunnelLabel">IPsec Site-to-Site VPN</text>
+
+        <!-- packets -->
+        <circle id="packetRight" class="packet" r="6" cy="215"/>
+        <circle id="packetLeft" class="packet" r="6" cy="215"/>
+      </svg>
+    </div>
+
+    <div class="stage">
+      <span class="tag" id="stepTag">BUILD</span>
+      <h2 class="content-title" id="stepTitle">—</h2>
+      <div id="stepBody"></div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="nav-btn" id="prevBtn">← Previous</button>
+      <button class="nav-btn primary" id="nextBtn">Next →</button>
+    </div>
+  </main>
+</div>
+
+<script>
+const steps = [
+{ phase:"DESIGN", tag:"build", title:"1. Design the layout",
+  body:`<p class="content-body">Two small networks that need to talk to each other privately: <strong>AWS (HQ)</strong> runs one VPC with one EC2 instance. <strong>Azure (Field Office)</strong> runs one VNet with one VM. They'll be joined by a VPN, not the public internet.</p>`,
+  diagram:{} },
+
+{ phase:"DESIGN", tag:"build", title:"2. Plan IP addressing",
+  body:`<p class="content-body">Non-overlapping ranges are required before any VPN peering will work.</p>
+        <pre class="code-block">AWS VPC (HQ):        10.0.0.0/16  →  subnet 10.0.1.0/24
+Azure VNet (Field):  10.1.0.0/16  →  subnet 10.1.1.0/24</pre>`,
+  diagram:{ awsBox:'active', azBox:'active' } },
+
+{ phase:"AWS SIDE", tag:"build", title:"3. Create the AWS VPC + subnet",
+  body:`<p class="content-body">VPC → Create VPC → <code class="inline">hq-vpc</code> (10.0.0.0/16). Then Subnets → Create → <code class="inline">hq-subnet-1</code> (10.0.1.0/24).</p>`,
+  diagram:{ awsBox:'active', awsSubnet:'active' } },
+
+{ phase:"AWS SIDE", tag:"build", title:"4. Attach an Internet Gateway",
+  body:`<p class="content-body">Create <code class="inline">hq-igw</code>, attach to <code class="inline">hq-vpc</code>, then add a route so the subnet can reach the outside world for setup.</p>
+        <pre class="code-block">Route table (hq-vpc)
+  Destination: 0.0.0.0/0
+  Target:      hq-igw
+Subnet association: hq-subnet-1</pre>`,
+  diagram:{ awsBox:'active', awsSubnet:'active' } },
+
+{ phase:"AWS SIDE", tag:"build", title:"5. Launch the EC2 instance",
+  body:`<p class="content-body">Amazon Linux 2023, t2.micro, placed in <code class="inline">hq-subnet-1</code>, security group allowing SSH (22) from your IP.</p>`,
+  diagram:{ awsBox:'success', awsSubnet:'success' } },
+
+{ phase:"AWS SIDE", tag:"verify", title:"6. Verify AWS side",
+  body:`<pre class="code-block">ssh -i hq-key.pem ec2-user@&lt;public-ip&gt;
+# → [ec2-user@ip-10-0-1-199 ~]$</pre>
+        <p class="content-body">VPC ✓ · subnet ✓ · routing ✓ · instance ✓ — HQ side is live.</p>`,
+  diagram:{ awsBox:'success', awsSubnet:'success' } },
+
+{ phase:"AZURE SIDE", tag:"build", title:"7. Create the Azure VNet + subnet",
+  body:`<p class="content-body">Virtual networks → Create → <code class="inline">field-vnet</code> (10.1.0.0/16), subnet <code class="inline">field-subnet-1</code> (10.1.1.0/24) — set on the <strong>IP Addresses</strong> tab, not Basics.</p>`,
+  diagram:{ azBox:'active', azSubnet:'active' } },
+
+{ phase:"AZURE SIDE", tag:"build", title:"8. Verify the VNet",
+  body:`<p class="content-body">Confirm address space 10.1.0.0/16 and subnet 10.1.1.0/24 are both listed and correct before moving on.</p>`,
+  diagram:{ azBox:'success', azSubnet:'active' } },
+
+{ phase:"AZURE SIDE", tag:"build", title:"9. Launch the Azure VM",
+  body:`<p class="content-body">Ubuntu 22.04, placed in <code class="inline">field-subnet-1</code>, SSH key auth, NSG allowing SSH inbound.</p>
+        <div class="footnote"><strong>Real snag hit:</strong> a fresh Pay-As-You-Go subscription had 0 quota on cheap VM families (B/D-series) in every region — only pricier E-series showed. Fixed by requesting a small quota increase / trying Azure Spot, and documenting the VM spec while proceeding.</div>`,
+  diagram:{ azBox:'success', azSubnet:'success' } },
+
+{ phase:"CONNECT", tag:"build", title:"10. AWS: Virtual Private Gateway",
+  body:`<p class="content-body">Create <code class="inline">hq-vgw</code>, attach to <code class="inline">hq-vpc</code>. Then start a Customer Gateway entry (finished once Azure's IP is known).</p>`,
+  diagram:{ awsBox:'success', awsGw:'active' } },
+
+{ phase:"CONNECT", tag:"build", title:"11. Azure: VPN Gateway",
+  body:`<p class="content-body"><code class="inline">field-vpn-gw</code>, SKU <code class="inline">VpnGw1</code>, route-based, non-active-active (single public IP). Takes 20–45 min to deploy.</p>
+        <pre class="code-block fix">Error: InvalidResourceReference — GatewaySubnet not found
+Fix: create GatewaySubnet manually first (10.1.2.0/27),
+     THEN create the VPN Gateway.</pre>`,
+  diagram:{ azBox:'success', azGw:'active' } },
+
+{ phase:"CONNECT", tag:"build", title:"12. Complete the AWS Customer Gateway + VPN Connection",
+  body:`<p class="content-body">Customer Gateway <code class="inline">azure-cgw</code> using Azure's public IP, then Site-to-Site VPN Connection <code class="inline">hq-to-field-vpn</code> targeting <code class="inline">hq-vgw</code>, static route 10.1.0.0/16.</p>
+        <pre class="code-block fix">Error: LocalNetworkGatewayCannotHaveSameAddressAsConnectedVnetGateway
+Fix: used AWS's Tunnel 1 "Outside IP Address" from the
+     downloaded config file — not Azure's own gateway IP.</pre>`,
+  diagram:{ awsBox:'success', awsGw:'active', azBox:'success', azGw:'active' } },
+
+{ phase:"CONNECT", tag:"build", title:"13. Azure: Local Network Gateway + Connection",
+  body:`<p class="content-body"><code class="inline">hq-local-gw</code> pointed at AWS's tunnel IP (10.0.0.0/16), then connection <code class="inline">field-to-hq-vpn</code> using the matching Pre-Shared Key from AWS's config file.</p>
+        <pre class="code-block fix">Status: Failed → re-entered the exact PSK from the AWS
+config file (character-for-character) → Save.
+Status: Unknown → clicked "Connect" to force the handshake.</pre>`,
+  diagram:{ awsBox:'success', awsGw:'active', azBox:'success', azGw:'active', tunnel:'active' } },
+
+{ phase:"VERIFY", tag:"issue", title:"14. Fix: missing AWS return route",
+  body:`<p class="content-body">Tunnel showed <strong>Connected</strong> but ping failed both ways. Root cause: AWS's route table for <code class="inline">hq-subnet-1</code> had no path back to Azure.</p>
+        <pre class="code-block fix">Route table (hq-subnet-1)
+  + Destination: 10.1.0.0/16
+  + Target:      hq-vgw
+  Route propagation: enabled for hq-vgw
+
+NSG (field-server): added inbound rule
+  Allow ICMP from 10.0.0.0/16
+
+Security Group (hq-server): added inbound rule
+  Allow All ICMP from 10.1.0.0/16</pre>`,
+  diagram:{ awsBox:'success', awsGw:'success', azBox:'success', azGw:'success', tunnel:'success' } },
+
+{ phase:"VERIFY", tag:"verify", title:"15. Ping test — Field Office → HQ",
+  body:`<pre class="code-block">$ ping 10.0.1.199
+64 bytes from 10.0.1.199: icmp_seq=286 ttl=127 time=13.0 ms
+64 bytes from 10.0.1.199: icmp_seq=287 ttl=127 time=5.22 ms</pre>
+        <p class="content-body">Real replies, real latency — private traffic flowing with zero public internet involved.</p>`,
+  diagram:{ awsBox:'success', awsGw:'success', azBox:'success', azGw:'success', tunnel:'success', packet:'left-to-right' } },
+
+{ phase:"VERIFY", tag:"verify", title:"16. Ping test — HQ → Field Office", 
+  body:`<p class="content-body">Reverse direction confirmed successful too — the tunnel is fully symmetric.</p>`,
+  diagram:{ awsBox:'success', awsGw:'success', azBox:'success', azGw:'success', tunnel:'success', packet:'right-to-left' } },
+
+{ phase:"COMPLETE", tag:"verify", title:"Project 1 — Complete", 
+  body:`<p class="content-body">A working hybrid landing zone: two clouds, two isolated networks, one encrypted tunnel, verified bidirectional connectivity — plus real production debugging (quota limits, NSG rules, route propagation, PSK mismatches) along the way.</p>
+        <div class="footnote">Tech stack: AWS VPC · AWS EC2 · Azure VNet · Azure VM · Site-to-Site VPN · IPsec · Linux</div>`,
+  diagram:{ awsBox:'success', awsGw:'success', azBox:'success', azGw:'success', tunnel:'success', packet:'loop' } },
+];
+
+let current = 0;
+const nav = document.getElementById('stepNav');
+let lastPhase = null;
+steps.forEach((s, i) => {
+  if(s.phase !== lastPhase){
+    const marker = document.createElement('div');
+    marker.className = 'step-item phase-marker';
+    marker.textContent = s.phase;
+    nav.appendChild(marker);
+    lastPhase = s.phase;
+  }
+  const item = document.createElement('div');
+  item.className = 'step-item';
+  item.dataset.index = i;
+  item.innerHTML = `<span class="step-num">${String(i+1).padStart(2,'0')}</span><span class="step-label">${s.title.replace(/^\d+\.\s*/,'')}</span>`;
+  item.addEventListener('click', () => render(i));
+  nav.appendChild(item);
+});
+
+function render(i){
+  current = i;
+  const s = steps[i];
+
+  document.querySelectorAll('.step-item[data-index]').forEach(el=>{
+    const idx = parseInt(el.dataset.index);
+    el.classList.toggle('active', idx===i);
+    el.classList.toggle('done', idx<i);
+  });
+
+  document.getElementById('progressFill').style.width = ((i+1)/steps.length*100)+'%';
+  document.getElementById('stepTitle').textContent = s.title;
+  document.getElementById('stepBody').innerHTML = s.body;
+  const tagEl = document.getElementById('stepTag');
+  tagEl.className = 'tag ' + s.tag;
+  tagEl.textContent = s.tag.toUpperCase();
+
+  ['awsBox','awsSubnet','awsGw','azBox','azSubnet','azGw'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.classList.remove('active','success');
+    if(s.diagram && s.diagram[id]) el.classList.add(s.diagram[id]);
+  });
+
+  const tunnel = document.getElementById('tunnel');
+  tunnel.classList.remove('active','success');
+  const tLabel = document.getElementById('tunnelLabel');
+  if(s.diagram && s.diagram.tunnel){
+    tunnel.classList.add(s.diagram.tunnel);
+    tLabel.style.fill = s.diagram.tunnel === 'success' ? 'var(--teal)' : 'var(--steel-bright)';
+  } else {
+    tLabel.style.fill = '';
+  }
+
+  const pRight = document.getElementById('packetRight');
+  const pLeft = document.getElementById('packetLeft');
+  pRight.classList.remove('fire'); pLeft.classList.remove('fire');
+  if(s.diagram && s.diagram.packet){
+    if(s.diagram.packet==='left-to-right' || s.diagram.packet==='loop'){
+      animatePacket(pRight, 305, 595, true);
+    }
+    if(s.diagram.packet==='right-to-left' || s.diagram.packet==='loop'){
+      animatePacket(pLeft, 595, 305, true);
+    }
+  }
+
+  document.getElementById('prevBtn').disabled = i===0;
+  document.getElementById('nextBtn').textContent = i===steps.length-1 ? 'Restart ↺' : 'Next →';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function animatePacket(el, x1, x2, loop){
+  el.setAttribute('cx', x1);
+  el.style.setProperty('--x1', x1+'px');
+  el.classList.add('fire');
+  // simple JS-driven left/right animation via CSS custom animation per element
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = `travel 1.4s ease-in-out ${loop?'infinite':'1'}`;
+  let startTime = null;
+  function step(ts){
+    if(!startTime) startTime = ts;
+    const elapsed = (ts-startTime) % 1400;
+    const progress = elapsed/1400;
+    const x = x1 + (x2-x1)*progress;
+    el.setAttribute('cx', x);
+    if(el.classList.contains('fire')) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=> render(Math.max(0,current-1)));
+document.getElementById('nextBtn').addEventListener('click', ()=> {
+  if(current===steps.length-1){ render(0); } else { render(current+1); }
+});
+
+render(0);
+</script>
+</body>
+</html>
