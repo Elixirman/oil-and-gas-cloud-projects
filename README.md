@@ -13,7 +13,7 @@ link headquarters systems to a remote field/rig site.
 - **Azure (Field Office)**: VNet → Subnet → VM → VPN Gateway
 - **Connection**: IPsec Site-to-Site VPN (public internet, encrypted tunnel)
 
-  ![schema](AWS-AZ-Schema.png)
+  ![schema](images/AWS-AZ-Schema.png)
 
 ---
 
